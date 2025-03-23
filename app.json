@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "cheezi_reminder",
-    "slug": "cheezi_reminder",
+    "name": "phantom_notify",
+    "slug": "phantom_notify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

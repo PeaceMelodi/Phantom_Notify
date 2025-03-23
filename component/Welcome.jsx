@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Platform } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 
 
@@ -9,16 +9,20 @@ const Welcome = () => {
 
 
   return (
-   <View style={{flex:1,justifyContent:'center',alignItems:'center', gap:20, backgroundColor:'#F5DFBB'}}>
-    
-    <Text style={{fontSize:20, color:'#2A0800', fontWeight:500}}>Welcome</Text>
+<View style={{flex:1, backgroundColor:'#F5DFBB'}}>
 
-<TouchableOpacity style={{ backgroundColor:'#FC5007', padding:10, borderRadius: 10}} onPress={() => navigation.navigate('MainPage')}>
-    <Text style={{fontSize:13, color:'white',}}>
-Next
+<View style={{flex:1,justifyContent:'center',alignItems:'center',}}>
+    
+    <Text style={{fontSize:25, color:'#2A0800', fontWeight:500}}>Welcome</Text>
+
+   </View>
+   <TouchableOpacity style={{paddingBottom:50, paddingTop:0 , alignItems:'center'}} onPress={() => navigation.navigate('MainPage')}>
+    <Text style={{fontSize:Platform.OS === 'ios' ? 12 : 15, color:'#2A0800'}}>
+    Continue →
 </Text>
 </TouchableOpacity>
-   </View>
+
+</View>
   )
 }
 
