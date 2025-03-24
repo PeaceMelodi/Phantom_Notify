@@ -31,7 +31,9 @@ const MainPage = () => {
 <View style={{backgroundColor:'#fff', width:'90%', padding:10, paddingLeft:20, borderRadius:30, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10}}>
   <Feather
  name="search" size={20} color="#2A0800" />
-  <TextInput placeholder='Search for tasks' style={{backgroundColor:'#fff'}}/>
+  <TextInput placeholder='Search for tasks' style={{backgroundColor:'#fff', padding:4, width:'90%'}}
+  hitSlop={{size:40}}
+  />
 </View>
 
 {/* Tasks */}
