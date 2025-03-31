@@ -15,9 +15,10 @@
     import { AntDesign, EvilIcons, Feather, MaterialCommunityIcons, FontAwesome5
     } from '@expo/vector-icons'
     import DateTimePicker from '@react-native-community/datetimepicker';
-
+    import { useTheme } from '../context/ThemeContext'
 
     const NewTask = () => {
+        const { colors } = useTheme();
         // Get current date and time
         const getCurrentDateTime = () => {
             return new Date();
@@ -128,7 +129,7 @@
         }, [date, time]);
 
         return (
-            <SafeAreaView style={{flex:1, backgroundColor:'#F5DFBB'}}>
+            <SafeAreaView style={{flex:1, backgroundColor: colors.background}}>
                 <KeyboardAvoidingView 
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{flex: 1}}
@@ -141,37 +142,38 @@
                             <View style={{flex:1, alignItems:'center'}}>
                             {/* Header */}
                                 <View style={{ width:'100%',  padding:30,alignItems:'center'}}>
-                                <Text style={{fontSize:20, color:'#2A0800', fontWeight:500}}>New Task</Text>
+                                <Text style={{fontSize:20, color: colors.text, fontWeight:500}}>New Task</Text>
                                 </View>
                                 {/* Body */}
                                 <View style={{marginVertical:Platform.OS === 'ios' ? 10 : 0, gap:10,width:'100%',}}>
                                 {/* Title */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color:'#2A0800', fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
                                 Title    
                                 </Text>
-                                <View style={{backgroundColor:'#fff',  padding:Platform.OS === 'ios' ? 20 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10}}>
+                                <View style={{backgroundColor: colors.card,  padding:Platform.OS === 'ios' ? 20 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10}}>
         
         <TextInput 
             placeholder='Enter Task' 
-            style={{backgroundColor:'#fff',width:'90%',}}  
+            style={{backgroundColor: colors.card, width:'90%', color: colors.text}}  
             hitSlop={{size:40}}
             returnKeyType="next"
+            placeholderTextColor={colors.text}
         />
         </View>
                                 </View>
         {/* Reminder Date */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color:'#2A0800', fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
                                 Reminder Date    
                                 </Text>
                                 <TouchableOpacity 
             onPress={() => setShowDatePicker(true)}
-            style={{backgroundColor:'#fff', width:'90%',padding:Platform.OS === 'ios' ? 20 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10, justifyContent:'space-between', paddingRight:Platform.OS === 'ios' ? 20 : 20}}>
-            <Text style={{color: displayDate ? '#000' : '#666'}}>
+            style={{backgroundColor: colors.card, width:'90%',padding:Platform.OS === 'ios' ? 20 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10, justifyContent:'space-between', paddingRight:Platform.OS === 'ios' ? 20 : 20}}>
+            <Text style={{color: displayDate ? colors.text : colors.placeholder}}>
                 {displayDate || 'Select Date'}
             </Text>
-            <FontAwesome5 name="calendar" size={Platform.OS === 'ios' ? 24 : 18} color="#2A0800" />
+            <FontAwesome5 name="calendar" size={Platform.OS === 'ios' ? 24 : 18} color={colors.icon} />
         </TouchableOpacity>
                                 </View>
                                 {/* Date Picker */}
@@ -207,12 +209,12 @@
                                 <Text style={{
                                     fontSize: 18,
                                     fontWeight: '600',
-                                    color: '#2A0800',
+                                    color: colors.text,
                                 }}>Select Date</Text>
                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                                     <Text style={{
                                         fontSize: 16,
-                                        color: '#FC5007',
+                                        color: colors.accent,
                                         fontWeight: '600',
                                     }}>Done</Text>
                                 </TouchableOpacity>
@@ -245,13 +247,13 @@
     )}
                                 {/* Reminder Time */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color:'#2A0800', fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
                                 Reminder Time    
                                 </Text>
                                 <TouchableOpacity 
                                     onPress={() => setShowTimePicker(true)}
                                     style={{
-                                        backgroundColor:'#fff', 
+                                        backgroundColor: colors.card, 
                                         width:'90%', 
                                         padding:Platform.OS === 'ios' ? 20 : 6, 
                                         paddingLeft:20, 
@@ -264,10 +266,10 @@
                                         paddingRight:Platform.OS === 'ios' ? 20 : 20
                                     }}
                                 >
-                                    <Text style={{color: displayTime ? '#000' : '#666'}}>
+                                    <Text style={{color: displayTime ? colors.text : colors.placeholder}}>
                                         {displayTime || 'Select Time'}
                                     </Text>
-                                    <AntDesign name="clockcircleo" size={Platform.OS === 'ios' ? 24 : 18} color="#2A0800" />
+                                    <AntDesign name="clockcircleo" size={Platform.OS === 'ios' ? 24 : 18} color={colors.icon} />
                                 </TouchableOpacity>
                                 </View>
                                 {/* Time Picker */}
@@ -303,12 +305,12 @@
                                                             <Text style={{
                                                                 fontSize: 18,
                                                                 fontWeight: '600',
-                                                                color: '#2A0800',
+                                                                color: colors.text,
                                                             }}>Select Time</Text>
                                                             <TouchableOpacity onPress={() => setShowTimePicker(false)}>
                                                                 <Text style={{
                                                                     fontSize: 16,
-                                                                    color: '#FC5007',
+                                                                    color: colors.accent,
                                                                     fontWeight: '600',
                                                                 }}>Done</Text>
                                                             </TouchableOpacity>
@@ -339,11 +341,11 @@
                                 )}
                                 {/* Additional Note */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color:'#2A0800', fontWeight:500, width:'87%'}}>
-                                Additional Note <Text style={{fontSize:10, color:'#2A0800'}}>(optional)</Text>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
+                                Additional Note <Text style={{fontSize:10, color: colors.text}}>(optional)</Text>
                                 </Text>
                                 <View style={{
-                                backgroundColor:'#fff',  
+                                backgroundColor: colors.card,  
                                 padding:10, 
                                 paddingLeft:20, 
                                 borderRadius:20, 
@@ -354,17 +356,19 @@
                                 <TextInput 
                                     placeholder='Write Something....' 
                                     style={{
-                                    backgroundColor:'#fff', 
+                                    backgroundColor: colors.card, 
                                     width:'100%',
                                     height: Platform.OS === 'ios' ? 120 : 100,
                                     textAlignVertical: 'top',
-                                    paddingTop: 10
+                                    paddingTop: 10,
+                                    color: colors.text
                                     }}  
                                     multiline={true}
                                     numberOfLines={5}
                                     returnKeyType="done"
                                     blurOnSubmit={true}
                                     onSubmitEditing={Keyboard.dismiss}
+                                    placeholderTextColor={colors.text}
                                 />
 
                                 </View>
@@ -373,28 +377,28 @@
                                 {/* Footer */}
                                 <View style={{flexDirection:'row', gap:10}}>
         <TouchableOpacity style={{
-            backgroundColor:'#FC5007',
+            backgroundColor: colors.accent,
             padding:13,
             borderRadius:20,
             width:'40%',
             alignItems:'center',
             justifyContent:'center'
         }}> 
-        <Text style={{color:'#fff'}}>
+        <Text style={{color: colors.card}}>
             Save
         </Text>
         </TouchableOpacity>
         <TouchableOpacity style={{
-            backgroundColor:'#fff',
+            backgroundColor: colors.card,
             padding:13,
             borderRadius:20,
             width:'40%',
             alignItems:'center',
             justifyContent:'center',
-            borderColor:'#FC5007',
+            borderColor: colors.accent,
             borderWidth:2
         }}> 
-        <Text style={{  color:'#FC5007'}}>
+        <Text style={{  color: colors.accent}}>
         Clear
         </Text>
         </TouchableOpacity>
