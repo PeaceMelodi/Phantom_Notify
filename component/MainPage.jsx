@@ -4,23 +4,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign, Feather, MaterialCommunityIcons, FontAwesome6 } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useTheme } from '../context/ThemeContext'
+import { useTasks } from '../context/TasksContext'
 
 const MainPage = () => {
    const navigation = useNavigation();
    const { colors } = useTheme();
+   const { tasks, deleteTask } = useTasks();
    const [searchQuery, setSearchQuery] = useState('');
 
-   // Sample tasks data - replace this with your actual tasks data source
-   const tasks = [
-     { id: '1', title: 'Task 1', dueDate: 'Tue, 23 10:00pm' },
-     { id: '2', title: 'Task 2', dueDate: 'Tue, 23 10:00pm' },
-     // Add more tasks as needed
-   ];
-
-   // Filter tasks based on search query
    const filteredTasks = tasks.filter(task => 
      task.title.toLowerCase().includes(searchQuery.toLowerCase())
    );
+
+   const handleDelete = (taskId) => {
+     deleteTask(taskId);
+   };
+
+   const handleEdit = (task) => {
+     navigation.navigate('NewTask', { task: task, isEditing: true });
+   };
 
    return (
     <SafeAreaView style={{flex:1, backgroundColor: colors.background}}>
@@ -96,10 +98,16 @@ const MainPage = () => {
                     </Text>
                   </View>
                   <View style={{flexDirection:'row', gap:25}}>
-                    <TouchableOpacity hitSlop={30}>
+                    <TouchableOpacity 
+                      hitSlop={30}
+                      onPress={() => handleEdit(task)}
+                    >
                       <MaterialCommunityIcons name="pencil-outline" size={17} color={colors.text} />
                     </TouchableOpacity>
-                    <TouchableOpacity hitSlop={10}>
+                    <TouchableOpacity 
+                      hitSlop={10} 
+                      onPress={() => handleDelete(task.id)}
+                    >
                       <FontAwesome6 name="trash" size={17} color={colors.text} />
                     </TouchableOpacity>
                   </View>

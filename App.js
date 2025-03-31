@@ -2,6 +2,7 @@ import React from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { ThemeProvider } from './context/ThemeContext';
+import { TasksProvider } from './context/TasksContext';
 import MainPage from './component/MainPage';
 import Welcome from './component/Welcome';
 import Settings from './component/Settings';
@@ -12,16 +13,24 @@ const Stack = createStackNavigator();
 const App = () => {
   return (
     <ThemeProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Welcome" component={Welcome} options={{headerShown: false}}/>
-          <Stack.Screen name="MainPage" component={MainPage} options={{headerShown: false}}/>
-          <Stack.Screen name="Settings" component={Settings} options={{headerShown: false}}/>
-          <Stack.Screen name="NewTask" component={NewTask} options={{headerShown: false}}/>
-        </Stack.Navigator>
-      </NavigationContainer>
+      <TasksProvider>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="Welcome" component={Welcome} options={{headerShown: false}}/>
+            <Stack.Screen name="MainPage" component={MainPage} options={{headerShown: false}}/>
+            <Stack.Screen name="Settings" component={Settings} options={{headerShown: false}}/>
+            <Stack.Screen name="NewTask" component={NewTask} options={{headerShown: false}}/>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </TasksProvider>
     </ThemeProvider>
-  )
-}
+  );
+};
 
 export default App
+
+
+
+
+
+

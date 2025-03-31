@@ -16,28 +16,56 @@
     } from '@expo/vector-icons'
     import DateTimePicker from '@react-native-community/datetimepicker';
     import { useTheme } from '../context/ThemeContext'
+    import { useNavigation } from '@react-navigation/native';
+    import { useTasks } from '../context/TasksContext';
 
-    const NewTask = () => {
+    const NewTask = ({ route }) => {
         const { colors } = useTheme();
-        // Get current date and time
-        const getCurrentDateTime = () => {
-            return new Date();
-        };
+        const navigation = useNavigation();
+        const { addTask, editTask } = useTasks();
+        
+        // Get task data if editing
+        const editingTask = route.params?.task;
+        const isEditing = route.params?.isEditing || false;
 
-        const [date, setDate] = useState(getCurrentDateTime());
-        const [time, setTime] = useState(getCurrentDateTime());
+        // Initialize state with existing task data if editing
+        const [taskTitle, setTaskTitle] = useState(editingTask?.title || '');
+        const [note, setNote] = useState(editingTask?.note || '');
+        
+        // Initialize date and time
+        const [date, setDate] = useState(editingTask ? new Date(editingTask.date) : new Date());
+        const [time, setTime] = useState(editingTask ? new Date(editingTask.time) : new Date());
+        
+        const [displayDate, setDisplayDate] = useState(
+            editingTask?.date ? 
+            new Date(editingTask.date).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }) : 
+            new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            })
+        );
+        
+        const [displayTime, setDisplayTime] = useState(
+            editingTask?.time ? 
+            new Date(editingTask.time).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            }) : 
+            new Date().toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            })
+        );
+
         const [showDatePicker, setShowDatePicker] = useState(false);
         const [showTimePicker, setShowTimePicker] = useState(false);
-        const [displayDate, setDisplayDate] = useState(getCurrentDateTime().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        }));
-        const [displayTime, setDisplayTime] = useState(getCurrentDateTime().toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        }));
 
         const onDateChange = (event, selectedDate) => {
             const currentDate = selectedDate || date;
@@ -128,6 +156,48 @@
             }
         }, [date, time]);
 
+        const handleSave = () => {
+            if (!taskTitle.trim()) return;
+            
+            const taskData = {
+                title: taskTitle,
+                dueDate: `${displayDate} ${displayTime}`,
+                date: date,
+                time: time,
+                note: note
+            };
+
+            if (isEditing) {
+                editTask(editingTask.id, taskData);
+            } else {
+                addTask({
+                    ...taskData,
+                    id: Date.now().toString(),
+                });
+            }
+            
+            navigation.navigate('MainPage');
+        };
+
+        // Add handleClear function
+        const handleClear = () => {
+            setTaskTitle('');
+            setNote('');
+            const now = new Date();
+            setDate(now);
+            setTime(now);
+            setDisplayDate(now.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }));
+            setDisplayTime(now.toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            }));
+        };
+
         return (
             <SafeAreaView style={{flex:1, backgroundColor: colors.background}}>
                 <KeyboardAvoidingView 
@@ -141,9 +211,27 @@
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <View style={{flex:1, alignItems:'center'}}>
                             {/* Header */}
-                                <View style={{ width:'100%',  padding:30,alignItems:'center'}}>
-                                <Text style={{fontSize:20, color: colors.text, fontWeight:500}}>New Task</Text>
-                                </View>
+                            <View style={{ 
+                                width:'100%',  
+                                padding:30,
+                                flexDirection: 'row',
+                                alignItems: 'center'
+                            }}>
+                                <TouchableOpacity 
+                                    onPress={() => navigation.goBack()}
+                                    style={{ marginRight: 30 }}
+                                    hitSlop={40}
+                                >
+                                    <AntDesign name="left" size={24} color={colors.text} />
+                                </TouchableOpacity>
+                                <Text style={{
+                                    fontSize:20, 
+                                    color: colors.text, 
+                                    fontWeight:500
+                                }}>
+                                    {isEditing ? 'Edit Task' : 'New Task'}
+                                </Text>
+                            </View>
                                 {/* Body */}
                                 <View style={{marginVertical:Platform.OS === 'ios' ? 10 : 0, gap:10,width:'100%',}}>
                                 {/* Title */}
@@ -151,13 +239,15 @@
                                 <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
                                 Title    
                                 </Text>
-                                <View style={{backgroundColor: colors.card,  padding:Platform.OS === 'ios' ? 20 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10}}>
+                                <View style={{backgroundColor: colors.card,  padding:Platform.OS === 'ios' ? 5 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10}}>
         
         <TextInput 
             placeholder='Enter Task' 
-            style={{backgroundColor: colors.card, width:'90%', color: colors.text}}  
-            hitSlop={{size:40}}
-            returnKeyType="next"
+            value={taskTitle}
+            onChangeText={setTaskTitle}
+            style={{backgroundColor: colors.card, width:'90%', color: colors.text, padding:Platform.OS === 'ios' ? 10 : 7}}  
+            returnKeyType="done"
+           
             placeholderTextColor={colors.text}
         />
         </View>
@@ -355,6 +445,8 @@
         
                                 <TextInput 
                                     placeholder='Write Something....' 
+                                    value={note}
+                                    onChangeText={setNote}
                                     style={{
                                     backgroundColor: colors.card, 
                                     width:'100%',
@@ -376,31 +468,37 @@
                                 </View>
                                 {/* Footer */}
                                 <View style={{flexDirection:'row', gap:10}}>
-        <TouchableOpacity style={{
-            backgroundColor: colors.accent,
-            padding:13,
-            borderRadius:20,
-            width:'40%',
-            alignItems:'center',
-            justifyContent:'center'
-        }}> 
-        <Text style={{color: colors.card}}>
-            Save
-        </Text>
+        <TouchableOpacity 
+            style={{
+                backgroundColor: colors.accent,
+                padding:13,
+                borderRadius:20,
+                width:'40%',
+                alignItems:'center',
+                justifyContent:'center'
+            }}
+            onPress={handleSave}
+        >
+            <Text style={{color: colors.card}}>
+                {isEditing ? 'Update' : 'Save'}
+            </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{
-            backgroundColor: colors.card,
-            padding:13,
-            borderRadius:20,
-            width:'40%',
-            alignItems:'center',
-            justifyContent:'center',
-            borderColor: colors.accent,
-            borderWidth:2
-        }}> 
-        <Text style={{  color: colors.accent}}>
-        Clear
-        </Text>
+        <TouchableOpacity 
+            style={{
+                backgroundColor: colors.card,
+                padding:13,
+                borderRadius:20,
+                width:'40%',
+                alignItems:'center',
+                justifyContent:'center',
+                borderColor: colors.accent,
+                borderWidth:2
+            }}
+            onPress={handleClear}
+        >
+            <Text style={{ color: colors.accent }}>
+                Clear
+            </Text>
         </TouchableOpacity>
 
                                 </View>
