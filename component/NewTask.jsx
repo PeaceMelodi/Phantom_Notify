@@ -19,14 +19,9 @@
     import { useNavigation } from '@react-navigation/native';
     import { useTasks } from '../context/TasksContext';
 
-    const fontFamily = Platform.select({
-        ios: 'American Typewriter',
-        android: 'sans-serif-light'
-    });
-
     const NewTask = ({ route }) => {
         // Get theme colors from ThemeContext for styling
-        const { colors } = useTheme();
+        const { colors, selectedFont } = useTheme();
         // Get navigation functions to move between screens
         const navigation = useNavigation();
         // Get task management functions from TasksContext
@@ -265,7 +260,8 @@
                                 <Text style={{
                                     fontSize:20, 
                                     color: colors.text, 
-                                    fontWeight:500
+                                    fontWeight:500,
+                                    fontFamily: selectedFont
                                 }}>
                                     {isEditing ? 'Edit Task' : 'New Task'}
                                 </Text>
@@ -274,7 +270,7 @@
                                 <View style={{marginVertical:Platform.OS === 'ios' ? 10 : 0, gap:10,width:'100%',}}>
                                 {/* Title */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%', fontFamily: selectedFont}}>
                                 Title    
                                 </Text>
                                 <View style={{backgroundColor: colors.card,  padding:Platform.OS === 'ios' ? 5 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10}}>
@@ -283,7 +279,7 @@
             placeholder='Enter Task' 
             value={taskTitle}
             onChangeText={setTaskTitle}
-            style={{backgroundColor: colors.card, width:'90%', color: colors.text, padding:Platform.OS === 'ios' ? 10 : 7}}  
+            style={{backgroundColor: colors.card, width:'90%', color: colors.text, padding:Platform.OS === 'ios' ? 10 : 7, fontFamily: selectedFont}}  
             returnKeyType="done"
            
             placeholderTextColor={colors.text}
@@ -292,13 +288,29 @@
                                 </View>
         {/* Reminder Date */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%', fontFamily: selectedFont}}>
                                 Reminder Date    
                                 </Text>
                                 <TouchableOpacity 
             onPress={() => setShowDatePicker(true)}
-            style={{backgroundColor: colors.card, width:'90%',padding:Platform.OS === 'ios' ? 20 : 6, paddingLeft:20, borderRadius:20, flexDirection:'row', gap:10, alignItems:'center', marginVertical:10, justifyContent:'space-between', paddingRight:Platform.OS === 'ios' ? 20 : 20}}>
-            <Text style={{color: displayDate ? colors.text : colors.placeholder}}>
+            style={{
+                backgroundColor: colors.card, 
+                width:'90%',
+                padding:Platform.OS === 'ios' ? 20 : 6, 
+                paddingLeft:20, 
+                borderRadius:20, 
+                flexDirection:'row', 
+                gap:10, 
+                alignItems:'center', 
+                marginVertical:10, 
+                justifyContent:'space-between', 
+                paddingRight:Platform.OS === 'ios' ? 20 : 20
+            }}
+        >
+            <Text style={{
+                color: displayDate ? colors.text : colors.placeholder,
+                fontFamily: selectedFont
+            }}>
                 {displayDate || 'Select Date'}
             </Text>
             <FontAwesome5 name="calendar" size={Platform.OS === 'ios' ? 24 : 18} color={colors.icon} />
@@ -338,12 +350,14 @@
                                     fontSize: 18,
                                     fontWeight: '600',
                                     color: colors.text,
+                                    fontFamily: selectedFont
                                 }}>Select Date</Text>
                                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                                     <Text style={{
                                         fontSize: 16,
                                         color: colors.accent,
                                         fontWeight: '600',
+                                        fontFamily: selectedFont
                                     }}>Done</Text>
                                 </TouchableOpacity>
                             </View>
@@ -375,7 +389,7 @@
     )}
                                 {/* Reminder Time */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%', fontFamily: selectedFont}}>
                                 Reminder Time    
                                 </Text>
                                 <TouchableOpacity 
@@ -394,7 +408,10 @@
                                         paddingRight:Platform.OS === 'ios' ? 20 : 20
                                     }}
                                 >
-                                    <Text style={{color: displayTime ? colors.text : colors.placeholder}}>
+                                    <Text style={{
+                                        color: displayTime ? colors.text : colors.placeholder,
+                                        fontFamily: selectedFont
+                                    }}>
                                         {displayTime || 'Select Time'}
                                     </Text>
                                     <AntDesign name="clockcircleo" size={Platform.OS === 'ios' ? 24 : 18} color={colors.icon} />
@@ -434,12 +451,14 @@
                                                                 fontSize: 18,
                                                                 fontWeight: '600',
                                                                 color: colors.text,
+                                                                fontFamily: selectedFont
                                                             }}>Select Time</Text>
                                                             <TouchableOpacity onPress={() => setShowTimePicker(false)}>
                                                                 <Text style={{
                                                                     fontSize: 16,
                                                                     color: colors.accent,
                                                                     fontWeight: '600',
+                                                                    fontFamily: selectedFont
                                                                 }}>Done</Text>
                                                             </TouchableOpacity>
                                                         </View>
@@ -469,7 +488,7 @@
                                 )}
                                 {/* Additional Note */}
                                 <View style={{ alignItems:'center' }}>
-                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%'}}>
+                                <Text style={{fontSize:17, color: colors.text, fontWeight:500, width:'87%', fontFamily: selectedFont}}>
                                 Additional Note <Text style={{fontSize:10, color: colors.text}}>(optional)</Text>
                                 </Text>
                                 <View style={{
@@ -491,7 +510,8 @@
                                     height: Platform.OS === 'ios' ? 120 : 100,
                                     textAlignVertical: 'top',
                                     paddingTop: 10,
-                                    color: colors.text
+                                    color: colors.text,
+                                    fontFamily: selectedFont
                                     }}  
                                     multiline={true}
                                     numberOfLines={5}
@@ -517,7 +537,7 @@
             }}
             onPress={handleSave}
         >
-            <Text style={{color: colors.card}}>
+            <Text style={{color: colors.card, fontFamily: selectedFont}}>
                 {isEditing ? 'Update' : 'Save'}
             </Text>
         </TouchableOpacity>
@@ -534,7 +554,7 @@
             }}
             onPress={handleClear}
         >
-            <Text style={{ color: colors.accent }}>
+            <Text style={{ color: colors.accent, fontFamily: selectedFont }}>
                 Clear
             </Text>
         </TouchableOpacity>

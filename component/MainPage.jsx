@@ -8,7 +8,7 @@ import { useTasks } from '../context/TasksContext'
 
 const MainPage = () => {
    const navigation = useNavigation();
-   const { colors } = useTheme();
+   const { colors, selectedFont } = useTheme();
    const { tasks, deleteTask } = useTasks();
    const [searchQuery, setSearchQuery] = useState('');
 
@@ -30,7 +30,7 @@ const MainPage = () => {
         <View style={{flex:1, alignItems:'center'}}>
           {/* Header */}
           <View style={{ width:'100%', padding:30, gap:10, justifyContent:'space-between', flexDirection:'row'}}>
-            <Text style={{fontSize:20, color: colors.text, fontWeight:500}}>
+            <Text style={{fontSize:20, color: colors.text, fontWeight:500, fontFamily: selectedFont}}>
               Tasks
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
@@ -59,7 +59,8 @@ const MainPage = () => {
                 backgroundColor: colors.card,
                 padding: 4,
                 width: '90%',
-                color: colors.text
+                color: colors.text,
+                fontFamily: selectedFont
               }}
               placeholderTextColor={colors.text}
             />
@@ -70,10 +71,10 @@ const MainPage = () => {
             {filteredTasks.length === 0 ? (
               <View style={{alignItems: 'center', justifyContent: 'center', paddingVertical: 32}}>
                 <Feather name="search" size={50} color={colors.text} style={{marginBottom: 16}} />
-                <Text style={{color: colors.text, fontSize: 18, textAlign: 'center'}}>
+                <Text style={{color: colors.text, fontSize: 18, textAlign: 'center', fontFamily: selectedFont}}>
                   No tasks found
                 </Text>
-                <Text style={{color: colors.text, textAlign: 'center', marginTop: 8, opacity: 0.7}}>
+                <Text style={{color: colors.text, textAlign: 'center', marginTop: 8, opacity: 0.7, fontFamily: selectedFont}}>
                   Try a different search term
                 </Text>
               </View>
@@ -89,12 +90,12 @@ const MainPage = () => {
                   justifyContent:'space-between'
                 }}>
                   <View style={{gap:10}}>
-                    <Text style={{fontSize:18, color: colors.text, fontWeight:500}}>
+                    <Text style={{fontSize:18, color: colors.text, fontWeight:500, fontFamily: selectedFont}}>
                       {task.title}
                     </Text>
                     <Text>
-                      <Text style={{color: colors.text, fontWeight:500}}>Due:</Text>
-                      <Text style={{color: colors.text}}> {task.dueDate}</Text>
+                      <Text style={{color: colors.text, fontWeight:500, fontFamily: selectedFont}}>Due:</Text>
+                      <Text style={{color: colors.text, fontFamily: selectedFont}}> {task.dueDate}</Text>
                     </Text>
                   </View>
                   <View style={{flexDirection:'row', gap:25}}>

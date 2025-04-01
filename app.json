@@ -23,6 +23,9 @@
     },
     "web": {
       "favicon": "./assets/phantom_reminder.png"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
