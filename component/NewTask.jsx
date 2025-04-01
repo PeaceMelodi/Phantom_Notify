@@ -19,23 +19,40 @@
     import { useNavigation } from '@react-navigation/native';
     import { useTasks } from '../context/TasksContext';
 
+    const fontFamily = Platform.select({
+        ios: 'American Typewriter',
+        android: 'sans-serif-light'
+    });
+
     const NewTask = ({ route }) => {
+        // Get theme colors from ThemeContext for styling
         const { colors } = useTheme();
+        // Get navigation functions to move between screens
         const navigation = useNavigation();
+        // Get task management functions from TasksContext
         const { addTask, editTask } = useTasks();
         
-        // Get task data if editing
+        // Check if we're editing an existing task by getting task data from navigation params
+        // If route.params.task exists, we're editing. If not, we're creating new task
         const editingTask = route.params?.task;
         const isEditing = route.params?.isEditing || false;
 
-        // Initialize state with existing task data if editing
+        // State for task title - If editing, use existing title, otherwise empty string
         const [taskTitle, setTaskTitle] = useState(editingTask?.title || '');
+        // State for task note - If editing, use existing note, otherwise empty string
         const [note, setNote] = useState(editingTask?.note || '');
         
-        // Initialize date and time
+        // Initialize date state:
+        // If editing: use the task's existing date
+        // If new task: use current date
         const [date, setDate] = useState(editingTask ? new Date(editingTask.date) : new Date());
+        
+        // Initialize time state similarly to date
         const [time, setTime] = useState(editingTask ? new Date(editingTask.time) : new Date());
         
+        // State for displaying date in UK format (dd/mm/yyyy)
+        // If editing: format the existing date
+        // If new: format current date
         const [displayDate, setDisplayDate] = useState(
             editingTask?.date ? 
             new Date(editingTask.date).toLocaleDateString('en-GB', {
@@ -50,6 +67,8 @@
             })
         );
         
+        // State for displaying time in 12-hour format
+        // Similar logic to displayDate
         const [displayTime, setDisplayTime] = useState(
             editingTask?.time ? 
             new Date(editingTask.time).toLocaleTimeString('en-GB', {
@@ -64,14 +83,17 @@
             })
         );
 
+        // States to control visibility of date/time pickers
         const [showDatePicker, setShowDatePicker] = useState(false);
         const [showTimePicker, setShowTimePicker] = useState(false);
 
+        // Handler for when date is changed in picker
         const onDateChange = (event, selectedDate) => {
             const currentDate = selectedDate || date;
             const now = new Date();
             now.setHours(0, 0, 0, 0);
             
+            // Prevent selecting past dates
             if (currentDate < now) {
                 if (Platform.OS === 'android') {
                     setShowDatePicker(false);
@@ -79,6 +101,7 @@
                 return;
             }
             
+            // Update date and its display format
             setDate(currentDate);
             setDisplayDate(currentDate.toLocaleDateString('en-GB', {
                 day: '2-digit',
@@ -86,6 +109,7 @@
                 year: 'numeric'
             }));
             
+            // If selected date is today, update time to current time
             if (currentDate.toDateString() === new Date().toDateString()) {
                 const newTime = new Date();
                 setTime(newTime);
@@ -96,15 +120,18 @@
                 }));
             }
             
+            // Close picker on Android
             if (Platform.OS === 'android') {
                 setShowDatePicker(false);
             }
         };
 
+        // Handler for when time is changed in picker
         const onTimeChange = (event, selectedTime) => {
             const currentTime = selectedTime || time;
             const now = new Date();
             
+            // If selected date is today, prevent selecting past times
             if (date.toDateString() === now.toDateString()) {
                 if (currentTime < now) {
                     if (Platform.OS === 'android') {
@@ -121,6 +148,7 @@
                 }
             }
 
+            // Update time and its display format
             setTime(currentTime);
             setDisplayTime(currentTime.toLocaleTimeString('en-GB', {
                 hour: '2-digit',
@@ -128,20 +156,23 @@
                 hour12: true
             }));
 
+            // Close picker on Android
             if (Platform.OS === 'android') {
                 setShowTimePicker(false);
             }
         };
 
-        // Get today's date for minimum date
+        // Reference to today's date for minimum date validation
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Update time every minute if the selected date is today
+        // Effect to automatically update time if selected date is today
         useEffect(() => {
             if (date.toDateString() === new Date().toDateString()) {
+                // Update time every minute
                 const intervalId = setInterval(() => {
                     const now = new Date();
+                    // If current time is past selected time, update to current time
                     if (time < now) {
                         setTime(now);
                         setDisplayTime(now.toLocaleTimeString('en-GB', {
@@ -150,15 +181,19 @@
                             hour12: true
                         }));
                     }
-                }, 60000);
+                }, 60000); // Run every minute
 
+                // Cleanup interval on component unmount or when dependencies change
                 return () => clearInterval(intervalId);
             }
         }, [date, time]);
 
+        // Handler for saving task
         const handleSave = () => {
+            // Don't save if title is empty
             if (!taskTitle.trim()) return;
             
+            // Prepare task data
             const taskData = {
                 title: taskTitle,
                 dueDate: `${displayDate} ${displayTime}`,
@@ -167,6 +202,8 @@
                 note: note
             };
 
+            // If editing, update existing task
+            // If new, create new task with unique ID
             if (isEditing) {
                 editTask(editingTask.id, taskData);
             } else {
@@ -176,10 +213,11 @@
                 });
             }
             
+            // Return to main page
             navigation.navigate('MainPage');
         };
 
-        // Add handleClear function
+        // Handler to clear all form fields
         const handleClear = () => {
             setTaskTitle('');
             setNote('');
