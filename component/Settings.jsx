@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
     View, 
     Text, 
@@ -6,7 +6,9 @@ import {
     Animated,
     ScrollView,
     Modal,
-    FlatList 
+    FlatList,
+    Image,
+    Linking 
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, AntDesign } from '@expo/vector-icons'
@@ -25,6 +27,33 @@ const Settings = () => {
     } = useTheme();
     const [animation] = useState(new Animated.Value(isDarkMode ? 1 : 0));
     const [showFontModal, setShowFontModal] = useState(false);
+
+    // New animated values for bubble and profile
+    const [bubbleAnimation] = useState(new Animated.Value(0));
+    const [profileAnimation] = useState(new Animated.Value(0));
+
+    // Run animations when component mounts
+    useEffect(() => {
+        // Delay for bubble animation
+        Animated.sequence([
+            Animated.delay(500), // Wait for 500ms
+            Animated.parallel([
+                // Fade in
+                Animated.timing(bubbleAnimation, {
+                    toValue: 1,
+                    duration: 500,
+                    useNativeDriver: true,
+                }),
+                // Slide up
+                Animated.spring(profileAnimation, {
+                    toValue: 1,
+                    tension: 50,
+                    friction: 7,
+                    useNativeDriver: true,
+                })
+            ])
+        ]).start();
+    }, []);
 
     const toggleTheme = () => {
         Animated.timing(animation, {
@@ -63,6 +92,10 @@ const Settings = () => {
             </Text>
         </TouchableOpacity>
     );
+
+    const openWhatsApp = () => {
+        Linking.openURL('https://wa.me/2348102608378');
+    };
 
     return (
         <SafeAreaView style={{flex:1, backgroundColor: colors.background}}>
@@ -178,6 +211,131 @@ const Settings = () => {
                     </View>
                 </View>
             </ScrollView>
+
+            {/* Floating Profile with Speech Bubble */}
+            <View style={{
+                position: 'absolute',
+                bottom: 20,
+                right: 20,
+                alignItems: 'flex-end'
+            }}>
+                {/* Speech Bubble */}
+                <TouchableOpacity 
+                    onPress={openWhatsApp}
+                    activeOpacity={1}  // Remove opacity feedback completely
+                    style={{
+                        transform: [{ scale: 1 }],  // Initial scale
+                    }}
+                    onPressIn={() => {
+                        Animated.spring(bubbleAnimation, {
+                            toValue: 0.95,  // Scale down slightly when pressed
+                            useNativeDriver: true,
+                            tension: 100,
+                            friction: 3
+                        }).start();
+                    }}
+                    onPressOut={() => {
+                        Animated.spring(bubbleAnimation, {
+                            toValue: 1,  // Scale back to normal when released
+                            useNativeDriver: true,
+                            tension: 100,
+                            friction: 3
+                        }).start();
+                    }}
+                >
+                    <Animated.View style={{
+                        backgroundColor: colors.card,
+                        padding: 8,
+                        borderRadius: 12,
+                        marginBottom: 10,
+                        marginRight: 5,
+                        maxWidth: 150,
+                        shadowColor: '#000',
+                        shadowOffset: {
+                            width: 0,
+                            height: 2
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                        transform: [{ scale: bubbleAnimation }]  // Apply scale animation
+                    }}>
+                        <Text style={{
+                            color: colors.text,
+                            fontSize: 12,
+                            fontFamily: selectedFont
+                        }}>
+                            Made by Phantom{'\n'}
+                            <Text style={{ color: colors.accent }}>
+                                Contact me →
+                            </Text>
+                        </Text>
+                        <View style={{
+                            position: 'absolute',
+                            bottom: -10,
+                            right: 20,
+                            width: 0,
+                            height: 0,
+                            backgroundColor: 'transparent',
+                            borderStyle: 'solid',
+                            borderLeftWidth: 10,
+                            borderRightWidth: 10,
+                            borderTopWidth: 10,
+                            borderLeftColor: 'transparent',
+                            borderRightColor: 'transparent',
+                            borderTopColor: colors.card,
+                        }} />
+                    </Animated.View>
+                </TouchableOpacity>
+
+                {/* Floating Profile Circle */}
+                <Animated.View style={{
+                    opacity: profileAnimation, // Fade in animation
+                    transform: [
+                        {
+                            translateY: profileAnimation.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [50, 0] // Slide up from 50 to 0
+                            })
+                        },
+                        {
+                            scale: profileAnimation.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0.5, 1] // Scale up from 0.5 to 1
+                            })
+                        }
+                    ]
+                }}>
+                    <TouchableOpacity
+                        onPress={openWhatsApp}
+                        style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 25,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            shadowColor: '#000',
+                            shadowOffset: {
+                                width: 0,
+                                height: 2
+                            },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <Image
+                            source={require('../assets/phantom.jpeg')}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                            }}
+                            resizeMode="cover"
+                        />
+                    </TouchableOpacity>
+                </Animated.View>
+            </View>
 
             {/* Font Selection Modal */}
             <Modal
