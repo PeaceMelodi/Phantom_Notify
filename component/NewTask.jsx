@@ -251,9 +251,8 @@ const NewTask = ({ route }) => {
         const currentTime = selectedTime || time;
         const now = new Date();
         
-        // If selected date is today, prevent selecting past times
+        // Check if the selected time is in the past or current time
         if (date.toDateString() === now.toDateString()) {
-            // Create a comparison date with current date and selected time
             const selectedDateTime = new Date(date);
             selectedDateTime.setHours(
                 currentTime.getHours(),
@@ -261,27 +260,28 @@ const NewTask = ({ route }) => {
                 currentTime.getSeconds()
             );
             
-            // If time is not at least one minute in the future
             if (selectedDateTime <= now) {
-                if (Platform.OS === 'android') {
-                    setShowTimePicker(false);
-                }
+                // Show warning using custom notification
+                setNotificationTitle("Time Adjustment");
+                setNotificationMessage("The selected time is in the past. The reminder will be set for tomorrow at this time.");
+                setNotificationVisible(true);
                 
-                // Set time to current time + 1 minute
-                const newTime = new Date();
-                newTime.setMinutes(newTime.getMinutes() + 1);
-                newTime.setSeconds(0);
-                
-                setTime(newTime);
-                setDisplayTime(newTime.toLocaleTimeString('en-GB', {
+                // Update time and its display format
+                setTime(currentTime);
+                setDisplayTime(currentTime.toLocaleTimeString('en-GB', {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: true
                 }));
+                
+                // Close picker on Android
+                if (Platform.OS === 'android') {
+                    setShowTimePicker(false);
+                }
                 return;
             }
         }
-
+        
         // Update time and its display format
         setTime(currentTime);
         setDisplayTime(currentTime.toLocaleTimeString('en-GB', {
@@ -373,7 +373,7 @@ const NewTask = ({ route }) => {
             return;
         }
         
-        // Check if the selected time is still in the future
+        // Check if the selected time is in the past or current time
         const now = new Date();
         const selectedDateTime = new Date(date);
         selectedDateTime.setHours(
@@ -382,40 +382,26 @@ const NewTask = ({ route }) => {
             time.getSeconds()
         );
         
-        // If time is no longer in the future, adjust it forward by 1 minute
-        let updatedTime = time;
-        let updatedDate = date;
+        let finalDate = date;
+        let finalTime = time;
+        
+        // If time is in the past or current time, adjust the date to tomorrow
         if (selectedDateTime <= now) {
-            updatedTime = new Date();
-            updatedTime.setMinutes(updatedTime.getMinutes() + 1);
-            updatedTime.setSeconds(0);
-            
-            // Update display time
-            setTime(updatedTime);
-            setDisplayTime(updatedTime.toLocaleTimeString('en-GB', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            }));
-            
-            // If it's a different day, update the date too
-            if (updatedTime.toDateString() !== date.toDateString()) {
-                updatedDate = new Date(updatedTime);
-                setDate(updatedDate);
-                setDisplayDate(updatedDate.toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                }));
-            }
+            finalDate = new Date(now);
+            finalDate.setDate(finalDate.getDate() + 1);
+            finalDate.setHours(0, 0, 0, 0);
         }
         
-        // Prepare task data with potentially adjusted time and date
+        // Prepare task data
         const taskData = {
             title: taskTitle,
-            dueDate: `${displayDate} ${displayTime}`,
-            date: updatedDate,
-            time: updatedTime,
+            dueDate: `${finalDate.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            })} ${displayTime}`,
+            date: finalDate,
+            time: finalTime,
             note: note
         };
 
