@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { Platform, AppState } from 'react-native';
+import { Platform, AppState, Vibration } from 'react-native';
+import { useTheme } from './ThemeContext';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -16,6 +17,9 @@ const TasksContext = createContext();
 
 // TasksProvider component that wraps the app and provides tasks functionality
 export const TasksProvider = ({ children }) => {
+    // Get theme settings
+    const { vibrationEnabled } = useTheme();
+    
     // State to store all tasks
     const [tasks, setTasks] = useState([]);
     // Track app state for foreground/background
@@ -29,6 +33,38 @@ export const TasksProvider = ({ children }) => {
         // Set up notification listener
         const notificationListener = Notifications.addNotificationReceivedListener(notification => {
             if (notification.request.content.data?.taskId) {
+                // Trigger manual vibration for both iOS and Android when notification is received
+                // This creates a stronger and longer vibration than what the system provides
+                // Only trigger if vibration is enabled in settings
+                if (vibrationEnabled) {
+                    // Long pattern: alternating 1000ms on, 500ms off - repeats multiple times
+                    const strongVibrationPattern = [0, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500];
+                    
+                    // For Android, need extra-strong vibration
+                    if (Platform.OS === 'android') {
+                        // Immediate strong vibration
+                        Vibration.vibrate(strongVibrationPattern, false);
+                        
+                        // Follow up with more vibrations for a truly intrusive experience
+                        setTimeout(() => {
+                            Vibration.vibrate(strongVibrationPattern, false);
+                        }, 3000);
+                        
+                        setTimeout(() => {
+                            Vibration.vibrate(strongVibrationPattern, false);
+                        }, 6000);
+                    } 
+                    // For iOS
+                    else if (Platform.OS === 'ios') {
+                        Vibration.vibrate(strongVibrationPattern, false);
+                        
+                        // Schedule another vibration shortly after
+                        setTimeout(() => {
+                            Vibration.vibrate(strongVibrationPattern, false);
+                        }, 3000);
+                    }
+                }
+                
                 deleteTask(notification.request.content.data.taskId);
             }
         });
@@ -53,7 +89,7 @@ export const TasksProvider = ({ children }) => {
             appStateSubscription.remove();
             clearInterval(cleanupInterval);
         };
-    }, []);
+    }, [vibrationEnabled]);
 
     // Clean up tasks that have expired
     const cleanupExpiredTasks = () => {
@@ -79,11 +115,17 @@ export const TasksProvider = ({ children }) => {
     // Function to request notifications permissions
     async function registerForPushNotificationsAsync() {
         if (Platform.OS === 'android') {
+            // Create a notification channel with maximum importance and strong vibration
             await Notifications.setNotificationChannelAsync('default', {
                 name: 'default',
                 importance: Notifications.AndroidImportance.MAX,
-                vibrationPattern: [0, 250, 250, 250],
+                // Stronger vibration pattern for Android notifications
+                // Extended length array with longer durations creates stronger vibrations
+                vibrationPattern: vibrationEnabled ? [0, 2000, 300, 2000, 300, 2000, 300, 2000, 300, 2000] : [],
                 lightColor: '#FF231F7C',
+                enableVibrate: vibrationEnabled,  // Only enable vibration if setting is on
+                lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+                sound: true
             });
         }
 
@@ -140,14 +182,37 @@ export const TasksProvider = ({ children }) => {
                 ? task.note 
                 : 'Reminder for your scheduled task!';
             
+            // Prepare notification content
+            let notificationContent = {
+                title: task.title,
+                body: notificationMessage,
+                sound: true,
+                priority: 'max',
+                data: { taskId: task.id },
+            };
+            
+            // Add platform-specific settings
+            if (Platform.OS === 'android') {
+                // For Android, add the maximum vibration pattern possible if enabled
+                if (vibrationEnabled) {
+                    notificationContent.vibrate = [0, 2000, 300, 2000, 300, 2000, 300, 2000, 300, 2000];
+                }
+                notificationContent.android = {
+                    channelId: 'default',
+                    priority: 'max',
+                    vibrate: vibrationEnabled,
+                    color: '#FF231F7C',
+                    // Set HIGH importance
+                    importance: Notifications.AndroidImportance.MAX,
+                };
+            } else if (Platform.OS === 'ios') {
+                // iOS-specific settings
+                notificationContent._displayInForeground = true;
+            }
+            
             // Schedule the notification with the calculated trigger time
             const id = await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: task.title,
-                    body: notificationMessage,
-                    sound: true,
-                    data: { taskId: task.id },
-                },
+                content: notificationContent,
                 trigger,
             });
             

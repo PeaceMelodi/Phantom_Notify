@@ -61,12 +61,15 @@ const FONTS = {
 export const ThemeProvider = ({ children }) => {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedFont, setSelectedFont] = useState('normal');  // Changed default to 'normal' for both platforms
+    const [vibrationEnabled, setVibrationEnabled] = useState(true); // Default vibration setting is on
 
     const theme = {
         isDarkMode,
         setIsDarkMode,
         selectedFont,
         setSelectedFont,
+        vibrationEnabled,
+        setVibrationEnabled,
         availableFonts: FONTS[Platform.OS],
         colors: {
             background: isDarkMode ? '#1A1A1A' : '#F5DFBB',
