@@ -20,7 +20,11 @@
         "foregroundImage": "./assets/phantom_reminder.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["NOTIFICATIONS"]
+      "permissions": [
+        "NOTIFICATIONS",
+        "NOTIFICATIONS"
+      ],
+      "package": "com.peacexv.phantom_notify"
     },
     "web": {
       "favicon": "./assets/phantom_reminder.png"
@@ -31,8 +35,7 @@
         "expo-notifications",
         {
           "icon": "./assets/phantom_reminder.png",
-          "color": "#ffffff",
-          "sounds": ["./assets/notification.wav"]
+          "color": "#ffffff"
         }
       ]
     ],
