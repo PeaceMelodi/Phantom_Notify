@@ -81,8 +81,8 @@ const Settings = () => {
             
             // If vibration is being turned ON, provide vibration feedback
             if (!vibrationEnabled) { // Current state is false, will be true after toggle
-                // Short vibration pattern to demonstrate it's working
-                Vibration.vibrate([0, 300, 100, 300]);
+                // Single, simple vibration (400ms) when toggle is turned on
+                Vibration.vibrate(400);
             }
         });
     }

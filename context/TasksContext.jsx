@@ -37,12 +37,32 @@ export const TasksProvider = ({ children }) => {
                 // This creates a stronger and longer vibration than what the system provides
                 // Only trigger if vibration is enabled in settings
                 if (vibrationEnabled) {
-                    // Long pattern: alternating 1000ms on, 500ms off - repeats multiple times
-                    const strongVibrationPattern = [0, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500];
-                    
-                    // For Android, need extra-strong vibration
-                    if (Platform.OS === 'android') {
+                    // For iOS, create an extremely intense vibration pattern
+                    // iOS needs more aggressive patterns because it tends to dampen vibrations
+                    if (Platform.OS === 'ios') {
+                        // First intense burst - longer ON times, shorter OFF times for maximum intensity
+                        const iOSIntensePattern = [0, 1000, 100, 1000, 100, 1000, 100, 1000];
+                        Vibration.vibrate(iOSIntensePattern, false);
+                        
+                        // Chain multiple aggressive vibration sequences with minimal delay
+                        setTimeout(() => {
+                            Vibration.vibrate(iOSIntensePattern, false);
+                        }, 2500);
+                        
+                        // Third sequence for extended duration
+                        setTimeout(() => {
+                            Vibration.vibrate(iOSIntensePattern, false);
+                        }, 5000);
+                        
+                        // Final intense burst
+                        setTimeout(() => {
+                            Vibration.vibrate(iOSIntensePattern, false);
+                        }, 7500);
+                    } 
+                    // For Android, keep existing pattern
+                    else if (Platform.OS === 'android') {
                         // Immediate strong vibration
+                        const strongVibrationPattern = [0, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500];
                         Vibration.vibrate(strongVibrationPattern, false);
                         
                         // Follow up with more vibrations for a truly intrusive experience
@@ -53,15 +73,6 @@ export const TasksProvider = ({ children }) => {
                         setTimeout(() => {
                             Vibration.vibrate(strongVibrationPattern, false);
                         }, 6000);
-                    } 
-                    // For iOS
-                    else if (Platform.OS === 'ios') {
-                        Vibration.vibrate(strongVibrationPattern, false);
-                        
-                        // Schedule another vibration shortly after
-                        setTimeout(() => {
-                            Vibration.vibrate(strongVibrationPattern, false);
-                        }, 3000);
                     }
                 }
                 
