@@ -9,7 +9,8 @@
         KeyboardAvoidingView,
         ScrollView,
         TouchableWithoutFeedback,
-        Modal
+        Modal,
+        Alert
     } from 'react-native'
     import { SafeAreaView } from 'react-native-safe-area-context';
     import { AntDesign, EvilIcons, Feather, MaterialCommunityIcons, FontAwesome5
@@ -128,11 +129,25 @@
             
             // If selected date is today, prevent selecting past times
             if (date.toDateString() === now.toDateString()) {
-                if (currentTime < now) {
+                // Create a comparison date with current date and selected time
+                const selectedDateTime = new Date(date);
+                selectedDateTime.setHours(
+                    currentTime.getHours(),
+                    currentTime.getMinutes(),
+                    currentTime.getSeconds()
+                );
+                
+                // If time is not at least one minute in the future
+                if (selectedDateTime <= now) {
                     if (Platform.OS === 'android') {
                         setShowTimePicker(false);
                     }
+                    
+                    // Set time to current time + 1 minute
                     const newTime = new Date();
+                    newTime.setMinutes(newTime.getMinutes() + 1);
+                    newTime.setSeconds(0);
+                    
                     setTime(newTime);
                     setDisplayTime(newTime.toLocaleTimeString('en-GB', {
                         hour: '2-digit',
@@ -183,33 +198,129 @@
             }
         }, [date, time]);
 
-        // Handler for saving task
-        const handleSave = () => {
-            // Don't save if title is empty
-            if (!taskTitle.trim()) return;
+        // Calculate time remaining until the notification will be sent
+        const getTimeRemaining = () => {
+            const now = new Date().getTime();
+            const scheduledDate = new Date(date);
+            const scheduledTime = new Date(time);
             
-            // Prepare task data
+            scheduledDate.setHours(
+                scheduledTime.getHours(),
+                scheduledTime.getMinutes(),
+                scheduledTime.getSeconds(),
+                0 // Reset milliseconds
+            );
+            
+            // Calculate milliseconds until scheduled time
+            const ms = scheduledDate.getTime() - now;
+            
+            if (ms <= 0) {
+                return "immediately";
+            }
+            
+            // Convert to readable format
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            const formattedTime = scheduledDate.toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            
+            if (days > 0) {
+                return `in ${days} day${days > 1 ? 's' : ''} at ${formattedTime}`;
+            } else if (hours > 0) {
+                return `in ${hours} hour${hours > 1 ? 's' : ''} at ${formattedTime}`;
+            } else if (minutes > 0) {
+                return `in ${minutes} minute${minutes > 1 ? 's' : ''} at ${formattedTime}`;
+            } else {
+                return `in ${seconds} second${seconds > 1 ? 's' : ''} at ${formattedTime}`;
+            }
+        };
+
+        // Handler for saving task
+        const handleSave = async () => {
+            // Don't save if title is empty
+            if (!taskTitle.trim()) {
+                Alert.alert("Error", "Task title cannot be empty");
+                return;
+            }
+            
+            // Check if the selected time is still in the future
+            const now = new Date();
+            const selectedDateTime = new Date(date);
+            selectedDateTime.setHours(
+                time.getHours(),
+                time.getMinutes(),
+                time.getSeconds()
+            );
+            
+            // If time is no longer in the future, adjust it forward by 1 minute
+            let updatedTime = time;
+            let updatedDate = date;
+            if (selectedDateTime <= now) {
+                updatedTime = new Date();
+                updatedTime.setMinutes(updatedTime.getMinutes() + 1);
+                updatedTime.setSeconds(0);
+                
+                // Update display time
+                setTime(updatedTime);
+                setDisplayTime(updatedTime.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }));
+                
+                // If it's a different day, update the date too
+                if (updatedTime.toDateString() !== date.toDateString()) {
+                    updatedDate = new Date(updatedTime);
+                    setDate(updatedDate);
+                    setDisplayDate(updatedDate.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    }));
+                }
+            }
+            
+            // Prepare task data with potentially adjusted time and date
             const taskData = {
                 title: taskTitle,
                 dueDate: `${displayDate} ${displayTime}`,
-                date: date,
-                time: time,
+                date: updatedDate,
+                time: updatedTime,
                 note: note
             };
 
-            // If editing, update existing task
-            // If new, create new task with unique ID
-            if (isEditing) {
-                editTask(editingTask.id, taskData);
-            } else {
-                addTask({
-                    ...taskData,
-                    id: Date.now().toString(),
-                });
+            try {
+                // If editing, update existing task
+                // If new, create new task with unique ID
+                if (isEditing) {
+                    await editTask(editingTask.id, taskData);
+                    Alert.alert(
+                        "Task Updated", 
+                        `Your task has been updated and will notify you ${getTimeRemaining()}.`,
+                        [{ text: "OK", onPress: () => navigation.navigate('MainPage') }]
+                    );
+                } else {
+                    await addTask({
+                        ...taskData,
+                        id: Date.now().toString(),
+                    });
+                    
+                    Alert.alert(
+                        "Task Created", 
+                        `Your task has been created and will notify you ${getTimeRemaining()}.`,
+                        [{ text: "OK", onPress: () => navigation.navigate('MainPage') }]
+                    );
+                }
+            } catch (error) {
+                Alert.alert("Error", "There was an error saving your task. Please try again.");
+                console.error("Error saving task:", error);
             }
-            
-            // Return to main page
-            navigation.navigate('MainPage');
         };
 
         // Handler to clear all form fields

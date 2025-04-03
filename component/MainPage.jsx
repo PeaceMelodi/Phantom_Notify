@@ -23,6 +23,38 @@ const MainPage = () => {
    const handleEdit = (task) => {
      navigation.navigate('NewTask', { task: task, isEditing: true });
    };
+   
+   // Format the task due date and time for display
+   const formatDueTime = (task) => {
+     // Make sure we have valid date and time data
+     if (!task.date || !task.time) return task.dueDate;
+     
+     try {
+       // Get date object from task dates
+       const taskDate = new Date(task.date);
+       const taskTime = new Date(task.time);
+       
+       // Format the date
+       const formattedDate = taskDate.toLocaleDateString('en-GB', {
+         day: '2-digit',
+         month: '2-digit',
+         year: 'numeric'
+       });
+       
+       // Format the time
+       const formattedTime = taskTime.toLocaleTimeString('en-GB', {
+         hour: '2-digit',
+         minute: '2-digit',
+         hour12: true
+       });
+       
+       return `${formattedDate} ${formattedTime}`;
+     } catch (error) {
+       // Fallback to stored dueDate if any error occurs
+       console.log('Error formatting task time:', error);
+       return task.dueDate;
+     }
+   };
 
    return (
     <SafeAreaView style={{flex:1, backgroundColor: colors.background}}>
@@ -95,7 +127,7 @@ const MainPage = () => {
                     </Text>
                     <Text>
                       <Text style={{color: colors.text, fontWeight:500, fontFamily: selectedFont}}>Due:</Text>
-                      <Text style={{color: colors.text, fontFamily: selectedFont}}> {task.dueDate}</Text>
+                      <Text style={{color: colors.text, fontFamily: selectedFont}}> {formatDueTime(task)}</Text>
                     </Text>
                   </View>
                   <View style={{flexDirection:'row', gap:25}}>
