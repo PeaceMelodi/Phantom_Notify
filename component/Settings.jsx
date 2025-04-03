@@ -8,7 +8,8 @@ import {
     Modal,
     FlatList,
     Image,
-    Linking 
+    Linking,
+    Vibration
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -69,13 +70,21 @@ const Settings = () => {
     }
     
     const toggleVibration = () => {
+        // Start the toggle animation
         Animated.timing(vibrationAnimation, {
             toValue: vibrationEnabled ? 0 : 1,
             duration: 200,
             useNativeDriver: true,
         }).start(() => {
-            setVibrationEnabled(!vibrationEnabled)
-        })
+            // Update the state
+            setVibrationEnabled(!vibrationEnabled);
+            
+            // If vibration is being turned ON, provide vibration feedback
+            if (!vibrationEnabled) { // Current state is false, will be true after toggle
+                // Short vibration pattern to demonstrate it's working
+                Vibration.vibrate([0, 300, 100, 300]);
+            }
+        });
     }
     
     const translateX = animation.interpolate({
