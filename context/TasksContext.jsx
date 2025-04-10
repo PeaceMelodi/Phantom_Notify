@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { Platform, AppState, Vibration } from 'react-native';
+import { Platform, AppState } from 'react-native';
 import { useTheme } from './ThemeContext';
 
 // Configure notifications
@@ -18,7 +18,7 @@ const TasksContext = createContext();
 // TasksProvider component that wraps the app and provides tasks functionality
 export const TasksProvider = ({ children }) => {
     // Get theme settings
-    const { vibrationEnabled } = useTheme();
+    const { colors } = useTheme();
     
     // State to store all tasks
     const [tasks, setTasks] = useState([]);
@@ -33,49 +33,6 @@ export const TasksProvider = ({ children }) => {
         // Set up notification listener
         const notificationListener = Notifications.addNotificationReceivedListener(notification => {
             if (notification.request.content.data?.taskId) {
-                // Trigger manual vibration for both iOS and Android when notification is received
-                // This creates a stronger and longer vibration than what the system provides
-                // Only trigger if vibration is enabled in settings
-                if (vibrationEnabled) {
-                    // For iOS, create an extremely intense vibration pattern
-                    // iOS needs more aggressive patterns because it tends to dampen vibrations
-                    if (Platform.OS === 'ios') {
-                        // First intense burst - longer ON times, shorter OFF times for maximum intensity
-                        const iOSIntensePattern = [0, 1000, 100, 1000, 100, 1000, 100, 1000];
-                        Vibration.vibrate(iOSIntensePattern, false);
-                        
-                        // Chain multiple aggressive vibration sequences with minimal delay
-                        setTimeout(() => {
-                            Vibration.vibrate(iOSIntensePattern, false);
-                        }, 2500);
-                        
-                        // Third sequence for extended duration
-                        setTimeout(() => {
-                            Vibration.vibrate(iOSIntensePattern, false);
-                        }, 5000);
-                        
-                        // Final intense burst
-                        setTimeout(() => {
-                            Vibration.vibrate(iOSIntensePattern, false);
-                        }, 7500);
-                    } 
-                    // For Android, keep existing pattern
-                    else if (Platform.OS === 'android') {
-                        // Immediate strong vibration
-                        const strongVibrationPattern = [0, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500, 300, 1500];
-                        Vibration.vibrate(strongVibrationPattern, false);
-                        
-                        // Follow up with more vibrations for a truly intrusive experience
-                        setTimeout(() => {
-                            Vibration.vibrate(strongVibrationPattern, false);
-                        }, 3000);
-                        
-                        setTimeout(() => {
-                            Vibration.vibrate(strongVibrationPattern, false);
-                        }, 6000);
-                    }
-                }
-                
                 deleteTask(notification.request.content.data.taskId);
             }
         });
@@ -100,7 +57,7 @@ export const TasksProvider = ({ children }) => {
             appStateSubscription.remove();
             clearInterval(cleanupInterval);
         };
-    }, [vibrationEnabled]);
+    }, []);
 
     // Clean up tasks that have expired
     const cleanupExpiredTasks = () => {
@@ -126,15 +83,11 @@ export const TasksProvider = ({ children }) => {
     // Function to request notifications permissions
     async function registerForPushNotificationsAsync() {
         if (Platform.OS === 'android') {
-            // Create a notification channel with maximum importance and strong vibration
+            // Create a notification channel with maximum importance
             await Notifications.setNotificationChannelAsync('default', {
                 name: 'default',
                 importance: Notifications.AndroidImportance.MAX,
-                // Stronger vibration pattern for Android notifications
-                // Extended length array with longer durations creates stronger vibrations
-                vibrationPattern: vibrationEnabled ? [0, 2000, 300, 2000, 300, 2000, 300, 2000, 300, 2000] : [],
                 lightColor: '#FF231F7C',
-                enableVibrate: vibrationEnabled,  // Only enable vibration if setting is on
                 lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
                 sound: true
             });
@@ -204,14 +157,9 @@ export const TasksProvider = ({ children }) => {
             
             // Add platform-specific settings
             if (Platform.OS === 'android') {
-                // For Android, add the maximum vibration pattern possible if enabled
-                if (vibrationEnabled) {
-                    notificationContent.vibrate = [0, 2000, 300, 2000, 300, 2000, 300, 2000, 300, 2000];
-                }
                 notificationContent.android = {
                     channelId: 'default',
                     priority: 'max',
-                    vibrate: vibrationEnabled,
                     color: '#FF231F7C',
                     // Set HIGH importance
                     importance: Notifications.AndroidImportance.MAX,

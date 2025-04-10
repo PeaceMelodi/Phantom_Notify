@@ -8,8 +8,7 @@ import {
     Modal,
     FlatList,
     Image,
-    Linking,
-    Vibration
+    Linking
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -24,12 +23,9 @@ const Settings = () => {
         colors,
         selectedFont,
         setSelectedFont,
-        availableFonts,
-        vibrationEnabled,
-        setVibrationEnabled
+        availableFonts
     } = useTheme();
     const [animation] = useState(new Animated.Value(isDarkMode ? 1 : 0));
-    const [vibrationAnimation] = useState(new Animated.Value(vibrationEnabled ? 1 : 0));
     const [showFontModal, setShowFontModal] = useState(false);
 
     // New animated values for bubble and profile
@@ -69,30 +65,7 @@ const Settings = () => {
         })
     }
     
-    const toggleVibration = () => {
-        // Start the toggle animation
-        Animated.timing(vibrationAnimation, {
-            toValue: vibrationEnabled ? 0 : 1,
-            duration: 200,
-            useNativeDriver: true,
-        }).start(() => {
-            // Update the state
-            setVibrationEnabled(!vibrationEnabled);
-            
-            // If vibration is being turned ON, provide vibration feedback
-            if (!vibrationEnabled) { // Current state is false, will be true after toggle
-                // Single, simple vibration (400ms) when toggle is turned on
-                Vibration.vibrate(400);
-            }
-        });
-    }
-    
     const translateX = animation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [2, 22]
-    })
-    
-    const vibrationTranslateX = vibrationAnimation.interpolate({
         inputRange: [0, 1],
         outputRange: [2, 22]
     })
@@ -190,61 +163,6 @@ const Settings = () => {
                                     <Ionicons name="moon" size={16} color="#333" />
                                 ) : (
                                     <Ionicons name="sunny" size={16} color="#FFD700" />
-                                )}
-                            </Animated.View>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Vibration Toggle */}
-                    <View style={{
-                        alignItems: 'center',
-                        marginTop: 30
-                    }}>
-                        <Text style={{
-                            fontSize: 16,
-                            color: colors.text,
-                            marginBottom: 10,
-                            fontFamily: selectedFont
-                        }}>
-                            {vibrationEnabled ? 'Vibration On' : 'Vibration Off'}
-                        </Text>
-                        
-                        <TouchableOpacity 
-                            activeOpacity={0.8}
-                            style={{
-                                width: 50,
-                                height: 30,
-                                borderRadius: 15,
-                                padding: 2,
-                                justifyContent: 'center',
-                                backgroundColor: vibrationEnabled ? colors.accent : '#999999'
-                            }}
-                            onPress={toggleVibration}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                            <Animated.View 
-                                style={{
-                                    width: 26,
-                                    height: 26,
-                                    borderRadius: 13,
-                                    backgroundColor: 'white',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    shadowColor: '#000',
-                                    shadowOffset: {
-                                        width: 0,
-                                        height: 2
-                                    },
-                                    shadowOpacity: 0.2,
-                                    shadowRadius: 2.5,
-                                    elevation: 2,
-                                    transform: [{ translateX: vibrationTranslateX }]
-                                }}
-                            >
-                                {vibrationEnabled ? (
-                                    <MaterialCommunityIcons name="vibrate" size={16} color={colors.accent} />
-                                ) : (
-                                    <MaterialCommunityIcons name="vibrate-off" size={16} color="#999999" />
                                 )}
                             </Animated.View>
                         </TouchableOpacity>

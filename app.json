@@ -13,7 +13,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,9 +25,12 @@
       },
       "permissions": [
         "NOTIFICATIONS",
+        "NOTIFICATIONS",
+        "NOTIFICATIONS",
         "NOTIFICATIONS"
       ],
-      "package": "com.peacexv.phantom_notify"
+      "package": "com.peacexv.phantom_notify",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/phantom_reminder.png"
@@ -43,6 +49,9 @@
       "eas": {
         "projectId": "71052998-80ff-4b03-9f4a-2ec971bf1135"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/71052998-80ff-4b03-9f4a-2ec971bf1135"
     }
   }
 }

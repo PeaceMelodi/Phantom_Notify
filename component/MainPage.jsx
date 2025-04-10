@@ -65,7 +65,7 @@ const MainPage = () => {
             <Text style={{fontSize:20, color: colors.text, fontWeight:500, fontFamily: selectedFont}}>
               Tasks
             </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Settings')} hitSlop={40}>
               <AntDesign name="setting" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
