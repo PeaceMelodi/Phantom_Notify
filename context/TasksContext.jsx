@@ -36,7 +36,25 @@ export const TasksProvider = ({ children }) => {
                 const savedTasks = await AsyncStorage.getItem(TASKS_STORAGE_KEY);
                 if (savedTasks) {
                     const parsedTasks = JSON.parse(savedTasks);
-                    setTasks(parsedTasks);
+                    // Clean up expired tasks before setting them
+                    const now = new Date().getTime();
+                    const activeTasks = parsedTasks.filter(task => {
+                        const taskDate = new Date(task.date);
+                        const taskTime = new Date(task.time);
+                        
+                        taskDate.setHours(
+                            taskTime.getHours(),
+                            taskTime.getMinutes(),
+                            taskTime.getSeconds()
+                        );
+                        
+                        const taskTime_ms = taskDate.getTime();
+                        return taskTime_ms > now;
+                    });
+                    
+                    setTasks(activeTasks);
+                    // Save the cleaned up tasks back to storage
+                    await AsyncStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(activeTasks));
                 }
             } catch (error) {
                 console.error('Error loading tasks:', error);

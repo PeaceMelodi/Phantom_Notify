@@ -53,13 +53,17 @@ const App = () => {
         <NavigationContainer>
           {/* Stack.Navigator: Manages stack-based navigation
               Handles screen transitions and history */}
-          <Stack.Navigator>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: 'transparent' }
+            }}
+          >
             {/* Welcome Screen: Initial landing screen
                 headerShown: false - hides default navigation header */}
             <Stack.Screen 
               name="Welcome" 
               component={Welcome} 
-              options={{headerShown: false}}
             />
             
             {/* MainPage Screen: Main task list screen
@@ -67,7 +71,6 @@ const App = () => {
             <Stack.Screen 
               name="MainPage" 
               component={MainPage} 
-              options={{headerShown: false}}
             />
             
             {/* Settings Screen: App settings screen
@@ -75,7 +78,6 @@ const App = () => {
             <Stack.Screen 
               name="Settings" 
               component={Settings} 
-              options={{headerShown: false}}
             />
             
             {/* NewTask Screen: Create/Edit task screen
@@ -83,7 +85,6 @@ const App = () => {
             <Stack.Screen 
               name="NewTask" 
               component={NewTask} 
-              options={{headerShown: false}}
             />
           </Stack.Navigator>
         </NavigationContainer>
