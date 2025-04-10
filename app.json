@@ -28,7 +28,12 @@
         "NOTIFICATIONS"
       ],
       "package": "com.peacexv.phantom_notify",
-      "runtimeVersion": "1.0.0"
+      "runtimeVersion": "1.0.0",
+      "statusBar": {
+        "backgroundColor": "transparent",
+        "barStyle": "dark-content",
+        "translucent": true
+      }
     },
     "plugins": [
       "expo-font",

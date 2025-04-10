@@ -8,6 +8,7 @@ import Welcome from './component/Welcome';
 import Settings from './component/Settings';
 import NewTask from './component/NewTask';
 import * as Notifications from 'expo-notifications';
+import { StatusBar } from 'react-native';
 
 // Configure default notification behavior at the app level
 Notifications.setNotificationHandler({
@@ -48,6 +49,12 @@ const App = () => {
       {/* TasksProvider: Provides tasks context to all child components
           Manages central task state and operations */}
       <TasksProvider>
+        {/* StatusBar: Controls the appearance of the status bar */}
+        <StatusBar 
+          translucent={true}
+          backgroundColor="transparent"
+          barStyle="dark-content"
+        />
         {/* NavigationContainer: Root component for navigation
             Manages navigation state and linking */}
         <NavigationContainer>
