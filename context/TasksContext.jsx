@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import * as Notifications from 'expo-notifications';
 import { Platform, AppState } from 'react-native';
 import { useTheme } from './ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -15,6 +16,9 @@ Notifications.setNotificationHandler({
 // Create a context for tasks management
 const TasksContext = createContext();
 
+// Storage key for tasks
+const TASKS_STORAGE_KEY = '@tasks_data';
+
 // TasksProvider component that wraps the app and provides tasks functionality
 export const TasksProvider = ({ children }) => {
     // Get theme settings
@@ -24,6 +28,31 @@ export const TasksProvider = ({ children }) => {
     const [tasks, setTasks] = useState([]);
     // Track app state for foreground/background
     const appState = useRef(AppState.currentState);
+
+    // Load saved tasks when the app starts
+    useEffect(() => {
+        const loadTasks = async () => {
+            try {
+                const savedTasks = await AsyncStorage.getItem(TASKS_STORAGE_KEY);
+                if (savedTasks) {
+                    const parsedTasks = JSON.parse(savedTasks);
+                    setTasks(parsedTasks);
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        };
+        loadTasks();
+    }, []);
+
+    // Save tasks whenever they change
+    const saveTasks = async (updatedTasks) => {
+        try {
+            await AsyncStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updatedTasks));
+        } catch (error) {
+            console.error('Error saving tasks:', error);
+        }
+    };
 
     // Register for push notifications permission and set up listeners
     useEffect(() => {
@@ -62,8 +91,8 @@ export const TasksProvider = ({ children }) => {
     // Clean up tasks that have expired
     const cleanupExpiredTasks = () => {
         const now = new Date().getTime();
-        setTasks(currentTasks => 
-            currentTasks.filter(task => {
+        setTasks(currentTasks => {
+            const filteredTasks = currentTasks.filter(task => {
                 // Calculate the task's scheduled time
                 const taskDate = new Date(task.date);
                 const taskTime = new Date(task.time);
@@ -76,8 +105,11 @@ export const TasksProvider = ({ children }) => {
                 
                 const taskTime_ms = taskDate.getTime();
                 return taskTime_ms > now;
-            })
-        );
+            });
+            // Save the filtered tasks
+            saveTasks(filteredTasks);
+            return filteredTasks;
+        });
     };
 
     // Function to request notifications permissions
@@ -218,7 +250,11 @@ export const TasksProvider = ({ children }) => {
                 ).toISOString()
             };
             
-            setTasks(currentTasks => [...currentTasks, taskWithNotification]);
+            setTasks(currentTasks => {
+                const updatedTasks = [...currentTasks, taskWithNotification];
+                saveTasks(updatedTasks);
+                return updatedTasks;
+            });
             console.log('Task added successfully');
             return taskWithNotification;
         } catch (error) {
@@ -234,7 +270,11 @@ export const TasksProvider = ({ children }) => {
             await cancelTaskNotification(taskId);
             
             // Remove task from state
-        setTasks(currentTasks => currentTasks.filter(task => task.id !== taskId));
+            setTasks(currentTasks => {
+                const updatedTasks = currentTasks.filter(task => task.id !== taskId);
+                saveTasks(updatedTasks);
+                return updatedTasks;
+            });
             console.log('Task deleted successfully');
         } catch (error) {
             console.error('Error deleting task:', error);
@@ -248,41 +288,40 @@ export const TasksProvider = ({ children }) => {
             const existingTask = tasks.find(task => task.id === taskId);
             
             if (existingTask) {
-                // Cancel old notification
+                // Cancel existing notification
                 await cancelTaskNotification(taskId);
                 
-                // Merge existing task with updates
-                const mergedTask = { ...existingTask, ...updatedTask };
-                
                 // Schedule new notification
-                const notificationId = await scheduleTaskNotification(mergedTask);
+                const notificationId = await scheduleTaskNotification(updatedTask);
                 
-                // Calculate new scheduled time
-                const now = new Date().getTime();
-                const taskDate = new Date(mergedTask.date);
-                const taskTime = new Date(mergedTask.time);
+                // Update task with new notification ID
+                const taskWithNotification = {
+                    ...updatedTask,
+                    notificationId,
+                    scheduledFor: new Date(
+                        new Date().getTime() + 
+                        (new Date(updatedTask.date).setHours(
+                            new Date(updatedTask.time).getHours(),
+                            new Date(updatedTask.time).getMinutes(),
+                            new Date(updatedTask.time).getSeconds(),
+                            0
+                        ) - new Date().getTime())
+                    ).toISOString()
+                };
                 
-                taskDate.setHours(
-                    taskTime.getHours(),
-                    taskTime.getMinutes(),
-                    taskTime.getSeconds(),
-                    0
-                );
+                setTasks(currentTasks => {
+                    const updatedTasks = currentTasks.map(task => 
+                        task.id === taskId ? taskWithNotification : task
+                    );
+                    saveTasks(updatedTasks);
+                    return updatedTasks;
+                });
                 
-                // Update task with new notification ID and scheduled time
-        setTasks(currentTasks => 
-            currentTasks.map(task => 
-                        task.id === taskId ? { 
-                            ...mergedTask, 
-                            notificationId,
-                            scheduledFor: taskDate.toISOString()
-                        } : task
-                    )
-                );
                 console.log('Task updated successfully');
+                return taskWithNotification;
             }
         } catch (error) {
-            console.error('Error editing task:', error);
+            console.error('Error updating task:', error);
             throw error;
         }
     };
@@ -329,12 +368,13 @@ export const TasksProvider = ({ children }) => {
 
     // Provide tasks state and management functions to children components
     return (
-        <TasksContext.Provider value={{ 
-            tasks, 
-            addTask, 
-            deleteTask, 
+        <TasksContext.Provider value={{
+            tasks,
+            addTask,
+            deleteTask,
             editTask,
-            formatTimeRemaining 
+            getMillisecondsUntilTask,
+            formatTimeRemaining
         }}>
             {children}
         </TasksContext.Provider>

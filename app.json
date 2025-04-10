@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Phantom Notify",
-    "slug": "phantom_notify",
+    "slug": "phantom-notify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/phantom_reminder.png",
@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "runtimeVersion": {
         "policy": "appVersion"
-      }
+      },
+      "bundleIdentifier": "com.peacexv.phantomnotify"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,16 +25,10 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "NOTIFICATIONS",
-        "NOTIFICATIONS",
-        "NOTIFICATIONS",
         "NOTIFICATIONS"
       ],
       "package": "com.peacexv.phantom_notify",
       "runtimeVersion": "1.0.0"
-    },
-    "web": {
-      "favicon": "./assets/phantom_reminder.png"
     },
     "plugins": [
       "expo-font",
@@ -47,11 +42,12 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "71052998-80ff-4b03-9f4a-2ec971bf1135"
+        "projectId": "7e0447ec-541e-4c7d-8c62-430600404a16"
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/71052998-80ff-4b03-9f4a-2ec971bf1135"
+      "url": "https://u.expo.dev/7e0447ec-541e-4c7d-8c62-430600404a16"
     }
   }
 }
+

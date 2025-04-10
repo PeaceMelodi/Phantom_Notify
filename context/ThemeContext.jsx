@@ -1,7 +1,11 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ThemeContext = createContext();
+
+// Storage keys
+const THEME_STORAGE_KEY = '@theme_settings';
 
 // Expanded font selections for each platform
 const FONTS = {
@@ -59,13 +63,55 @@ const FONTS = {
 
 export const ThemeProvider = ({ children }) => {
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [selectedFont, setSelectedFont] = useState('normal');  // Changed default to 'normal' for both platforms
+    const [selectedFont, setSelectedFont] = useState('normal');
+
+    // Load saved settings when the app starts
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const savedSettings = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+                if (savedSettings) {
+                    const { isDarkMode: savedDarkMode, selectedFont: savedFont } = JSON.parse(savedSettings);
+                    setIsDarkMode(savedDarkMode);
+                    setSelectedFont(savedFont);
+                }
+            } catch (error) {
+                console.error('Error loading theme settings:', error);
+            }
+        };
+        loadSettings();
+    }, []);
+
+    // Save settings whenever they change
+    const updateDarkMode = async (value) => {
+        setIsDarkMode(value);
+        try {
+            const currentSettings = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+            const settings = currentSettings ? JSON.parse(currentSettings) : {};
+            settings.isDarkMode = value;
+            await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(settings));
+        } catch (error) {
+            console.error('Error saving dark mode setting:', error);
+        }
+    };
+
+    const updateSelectedFont = async (font) => {
+        setSelectedFont(font);
+        try {
+            const currentSettings = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+            const settings = currentSettings ? JSON.parse(currentSettings) : {};
+            settings.selectedFont = font;
+            await AsyncStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(settings));
+        } catch (error) {
+            console.error('Error saving font setting:', error);
+        }
+    };
 
     const theme = {
         isDarkMode,
-        setIsDarkMode,
+        setIsDarkMode: updateDarkMode,
         selectedFont,
-        setSelectedFont,
+        setSelectedFont: updateSelectedFont,
         availableFonts: FONTS[Platform.OS],
         colors: {
             background: isDarkMode ? '#1A1A1A' : '#F5DFBB',
