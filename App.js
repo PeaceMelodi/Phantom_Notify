@@ -22,6 +22,37 @@ Notifications.setNotificationHandler({
 // Create a stack navigator instance for managing screen navigation
 const Stack = createStackNavigator();
 
+// Custom fade transition that prevents white flashes
+const fadeTransition = {
+  cardStyleInterpolator: ({ current: { progress }, previous }) => {
+    return {
+      cardStyle: {
+        opacity: progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+        }),
+      },
+      overlayStyle: {
+        opacity: 0,
+      },
+    };
+  },
+  transitionSpec: {
+    open: {
+      animation: 'timing',
+      config: {
+        duration: 200,
+      },
+    },
+    close: {
+      animation: 'timing',
+      config: {
+        duration: 200,
+      },
+    },
+  },
+};
+
 const App = () => {
   // Set up notification handlers when app starts
   useEffect(() => {
@@ -57,13 +88,22 @@ const App = () => {
         />
         {/* NavigationContainer: Root component for navigation
             Manages navigation state and linking */}
-        <NavigationContainer>
+        <NavigationContainer theme={{
+          colors: {
+            background: 'transparent',
+            card: 'transparent',
+            primary: 'transparent'
+          }
+        }}>
           {/* Stack.Navigator: Manages stack-based navigation
               Handles screen transitions and history */}
           <Stack.Navigator
             screenOptions={{
               headerShown: false,
-              cardStyle: { backgroundColor: 'transparent' }
+              cardStyle: { backgroundColor: 'transparent' },
+              animationEnabled: true,
+              detachPreviousScreen: false,
+              ...fadeTransition
             }}
           >
             {/* Welcome Screen: Initial landing screen
