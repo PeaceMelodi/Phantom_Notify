@@ -121,8 +121,11 @@ const MainPage = () => {
                   alignItems:'center',
                   justifyContent:'space-between'
                 }}>
-                  <View style={{gap:10}}>
-                    <Text style={{fontSize:18, color: colors.text, fontWeight:500, fontFamily: selectedFont}}>
+                  <View style={{gap:10,   }}>
+                    <Text style={{fontSize:18, color: colors.text, fontWeight:500, fontFamily: selectedFont, maxWidth: '70%'}}
+                     numberOfLines={1}    // Force single line with ellipsis
+                     ellipsizeMode="tail" // Add ... at the end
+                    >
                       {task.title}
                     </Text>
                     <Text>
