@@ -8,12 +8,15 @@ import {
     Modal,
     FlatList,
     Image,
-    Linking
+    Linking,
+    Alert,
+    Platform
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 import { useNavigation } from '@react-navigation/native'
+import * as Notifications from 'expo-notifications';
 
 const Settings = () => {
     const navigation = useNavigation();
@@ -95,6 +98,28 @@ const Settings = () => {
 
     const openWhatsApp = () => {
         Linking.openURL('https://wa.me/2348102608378');
+    };
+
+    // Test notification functionality
+    const testNotification = async () => {
+        try {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "Test Notification",
+                    body: "If you see this, notifications are working!",
+                },
+                trigger: { seconds: 2 },
+            });
+        } catch (error) {
+            console.log('Error testing notification:', error);
+        }
+    };
+
+    // Custom themed help modal
+    const [showHelpModal, setShowHelpModal] = useState(false);
+
+    const showNotificationHelp = () => {
+        setShowHelpModal(true);
     };
 
     return (
@@ -209,8 +234,121 @@ const Settings = () => {
                             }}>Change</Text>
                         </TouchableOpacity>
                     </View>
+
+                    {/* Notification Troubleshooting Section */}
+                    {Platform.OS === 'android' && (
+                        <View style={{
+                            marginTop: 20,
+                            padding: 15,
+                            backgroundColor: colors.card,
+                            borderRadius: 10
+                        }}>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                marginBottom: 10
+                            }}>
+                                <MaterialCommunityIcons 
+                                    name="bell-alert" 
+                                    size={20} 
+                                    color={colors.accent} 
+                                />
+                                <Text style={{
+                                    color: colors.text,
+                                    fontSize: 16,
+                                    fontWeight: '500',
+                                    marginLeft: 10,
+                                    fontFamily: selectedFont
+                                }}>Notification Help</Text>
+                            </View>
+                            <Text style={{
+                                color: colors.text,
+                                opacity: 0.7,
+                                fontSize: 14,
+                                marginBottom: 15,
+                                fontFamily: selectedFont
+                            }}>
+                                Having trouble with reminders? Get help with notification settings.
+                            </Text>
+                            <View style={{
+                                flexDirection: 'row',
+                                gap: 10
+                            }}>
+                                <TouchableOpacity 
+                                    onPress={testNotification}
+                                    style={{
+                                        backgroundColor: colors.accent,
+                                        paddingVertical: 8,
+                                        paddingHorizontal: 12,
+                                        borderRadius: 6,
+                                        flex: 1
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: colors.card,
+                                        fontSize: 14,
+                                        fontWeight: '500',
+                                        textAlign: 'center',
+                                        fontFamily: selectedFont
+                                    }}>Test Notification</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    onPress={showNotificationHelp}
+                                    style={{
+                                        backgroundColor: colors.border,
+                                        paddingVertical: 8,
+                                        paddingHorizontal: 12,
+                                        borderRadius: 6,
+                                        flex: 1
+                                    }}
+                                >
+                                    <Text style={{
+                                        color: colors.text,
+                                        fontSize: 14,
+                                        fontWeight: '500',
+                                        textAlign: 'center',
+                                        fontFamily: selectedFont
+                                    }}>Get Help</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )}
                 </View>
             </ScrollView>
+
+            {/* Custom Themed Help Modal */}
+            <Modal
+                visible={showHelpModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowHelpModal(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{ backgroundColor: colors.card, borderRadius: 16, padding: 24, width: '85%', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, textAlign: 'center', color: colors.text, fontFamily: selectedFont }}>
+                            Notification Issues?
+                        </Text>
+                        <Text style={{ fontSize: 15, marginBottom: 18, textAlign: 'center', color: colors.text, fontFamily: selectedFont }}>
+                            If your reminders aren't working:{"\n\n"}1. Go to Settings &gt; Battery &gt; Battery Optimization{"\n"}2. Find 'Phantom Notify' and set to 'Don't optimize'{"\n"}3. Also check Settings &gt; Apps &gt; Phantom Notify &gt; Permissions{"\n"}4. Make sure notifications are enabled
+                        </Text>
+                        <TouchableOpacity
+                            style={{ backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 24, marginBottom: 10, width: '100%' }}
+                            onPress={() => {
+                                setShowHelpModal(false);
+                                Linking.openSettings();
+                            }}
+                        >
+                            <Text style={{ color: colors.card, fontWeight: 'bold', fontSize: 16, textAlign: 'center', fontFamily: selectedFont }}>Open Settings</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            onPress={() => setShowHelpModal(false)}
+                            style={{ marginTop: 5 }}
+                        >
+                            <Text style={{ color: colors.accent, fontSize: 15, fontFamily: selectedFont }}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
 
             {/* Floating Profile with Speech Bubble */}
             <View style={{
@@ -373,7 +511,7 @@ const Settings = () => {
                         </View>
                         <FlatList
                             data={availableFonts}
-                            renderItem={({item, index}) => <FontOption font={item} index={index} />}
+                            renderItem={({item, index}) => <FontOption key={`font-${item}-${index}`} font={item} index={index} />}
                             keyExtractor={(item, index) => `${item}-${index}`}
                         />
                     </View>

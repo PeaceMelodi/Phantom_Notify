@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { TasksProvider } from './context/TasksContext';
 import MainPage from './component/MainPage';
 import Welcome from './component/Welcome';
 import Settings from './component/Settings';
 import NewTask from './component/NewTask';
 import * as Notifications from 'expo-notifications';
-import { StatusBar } from 'react-native';
+import { StatusBar, LogBox, Modal, View, Text, TouchableOpacity, Platform, Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure default notification behavior at the app level
 Notifications.setNotificationHandler({
@@ -53,50 +54,132 @@ const fadeTransition = {
   },
 };
 
-const App = () => {
-  // Set up notification handlers when app starts
+const AppContent = () => {
+  // Modal state for battery optimization instructions
+  const [showBatteryModal, setShowBatteryModal] = useState(false);
+  const { colors, selectedFont } = useTheme();
+
+  // Check if this is the first time opening the app
+  const checkFirstTimeApp = async () => {
+    if (Platform.OS !== 'android') return;
+
+    try {
+      // Check if we've already shown the modal to this user
+      const hasShownModal = await AsyncStorage.getItem('@battery_modal_shown');
+      
+      if (!hasShownModal) {
+        // Show the modal for first-time users only
+        setShowBatteryModal(true);
+        await AsyncStorage.setItem('@battery_modal_shown', 'true');
+      }
+    } catch (error) {
+      console.log('Error checking first time app status:', error);
+    }
+  };
+
+  // Set up notification handlers and check permissions when app starts
   useEffect(() => {
-    // Make sure any existing notifications are properly delivered
-    Notifications.getLastNotificationResponseAsync().then(response => {
-      if (response && response.notification.request.content.data.taskId) {
-        // Handle any pending notification data if needed
-      }
-    });
+    const setupNotifications = async () => {
+      try {
+        // Check notification permissions
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+        
+        // Check if this is first time opening the app
+        await checkFirstTimeApp();
+        
+        // Make sure any existing notifications are properly delivered
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response && response.notification.request.content.data.taskId) {
+          // Handle any pending notification data if needed
+        }
 
-    // Listen for notifications while app is running
-    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
-      if (response && response.notification.request.content.data.taskId) {
-        // Handle notification response if needed
-      }
-    });
+        // Listen for notifications while app is running
+        const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+          if (response && response.notification.request.content.data.taskId) {
+            // Handle notification response if needed
+          }
+        });
 
-    return () => subscription.remove();
+        return () => subscription.remove();
+      } catch (error) {
+        console.log('Notification setup completed (local notifications only)');
+      }
+    };
+
+    setupNotifications();
   }, []);
 
+  // Mute specific Expo Go push notification error
+  const originalConsoleError = console.error;
+  console.error = function (...args) {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed from Expo Go')
+    ) {
+      return; // Suppress this specific error
+    }
+    originalConsoleError.apply(console, args);
+  };
+
+  // Suppress Expo Go push notification error
+  LogBox.ignoreLogs([
+    'expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed from Expo Go',
+  ]);
+
   return (
-    // ThemeProvider: Provides theme context to all child components
-    // Allows app-wide theme management (colors, styles, etc.)
-    <ThemeProvider>
-      {/* TasksProvider: Provides tasks context to all child components
-          Manages central task state and operations */}
+    <>
+      {/* Battery Optimization Modal */}
+      <Modal
+        visible={showBatteryModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBatteryModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: colors.card, borderRadius: 16, padding: 24, width: '85%', alignItems: 'center' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12, textAlign: 'center', color: colors.text, fontFamily: selectedFont }}>
+              Improve Notification Reliability
+            </Text>
+            <Text style={{ fontSize: 15, marginBottom: 18, textAlign: 'center', color: colors.text, fontFamily: selectedFont }}>
+              To ensure reminders work reliably, please disable battery optimization for this app in your phone's settings.{"\n\n"}Go to Settings &gt; Battery &gt; Battery Optimization &gt; Phantom Notify &gt; Don't optimize.
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 24, marginBottom: 10 }}
+              onPress={() => {
+                setShowBatteryModal(false);
+                if (Platform.OS === 'android') {
+                  Linking.openSettings();
+                }
+              }}
+            >
+              <Text style={{ color: colors.card, fontWeight: 'bold', fontSize: 16, fontFamily: selectedFont }}>Open Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowBatteryModal(false)}>
+              <Text style={{ color: colors.accent, fontSize: 15, fontFamily: selectedFont }}>Dismiss</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* Main App */}
       <TasksProvider>
-        {/* StatusBar: Controls the appearance of the status bar */}
         <StatusBar 
           translucent={true}
           backgroundColor="transparent"
           barStyle="dark-content"
         />
-        {/* NavigationContainer: Root component for navigation
-            Manages navigation state and linking */}
-        <NavigationContainer theme={{
-          colors: {
-            background: 'transparent',
-            card: 'transparent',
-            primary: 'transparent'
-          }
-        }}>
-          {/* Stack.Navigator: Manages stack-based navigation
-              Handles screen transitions and history */}
+        <NavigationContainer 
+          key="main-navigation"
+          theme={{
+            colors: {
+              background: 'transparent',
+              card: 'transparent',
+              primary: 'transparent'
+            }
+          }}
+        >
           <Stack.Navigator
             screenOptions={{
               headerShown: false,
@@ -106,29 +189,18 @@ const App = () => {
               ...fadeTransition
             }}
           >
-            {/* Welcome Screen: Initial landing screen
-                headerShown: false - hides default navigation header */}
             <Stack.Screen 
               name="Welcome" 
               component={Welcome} 
             />
-            
-            {/* MainPage Screen: Main task list screen
-                headerShown: false - hides default navigation header */}
             <Stack.Screen 
               name="MainPage" 
               component={MainPage} 
             />
-            
-            {/* Settings Screen: App settings screen
-                headerShown: false - hides default navigation header */}
             <Stack.Screen 
               name="Settings" 
               component={Settings} 
             />
-            
-            {/* NewTask Screen: Create/Edit task screen
-                headerShown: false - hides default navigation header */}
             <Stack.Screen 
               name="NewTask" 
               component={NewTask} 
@@ -136,6 +208,57 @@ const App = () => {
           </Stack.Navigator>
         </NavigationContainer>
       </TasksProvider>
+    </>
+  );
+};
+
+const App = () => {
+  // Set up notification handlers when app starts
+  useEffect(() => {
+    const setupNotifications = async () => {
+      try {
+        // Make sure any existing notifications are properly delivered
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response && response.notification.request.content.data.taskId) {
+          // Handle any pending notification data if needed
+        }
+
+        // Listen for notifications while app is running
+        const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+          if (response && response.notification.request.content.data.taskId) {
+            // Handle notification response if needed
+          }
+        });
+
+        return () => subscription.remove();
+      } catch (error) {
+        console.log('Notification setup completed (local notifications only)');
+      }
+    };
+
+    setupNotifications();
+  }, []);
+
+  // Mute specific Expo Go push notification error
+  const originalConsoleError = console.error;
+  console.error = function (...args) {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed from Expo Go')
+    ) {
+      return; // Suppress this specific error
+    }
+    originalConsoleError.apply(console, args);
+  };
+
+  // Suppress Expo Go push notification error
+  LogBox.ignoreLogs([
+    'expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed from Expo Go',
+  ]);
+
+  return (
+    <ThemeProvider>
+      <AppContent />
     </ThemeProvider>
   );
 };

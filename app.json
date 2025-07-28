@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/phantom_reminder.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/phantom_reminder.png",
@@ -17,7 +17,12 @@
       "runtimeVersion": {
         "policy": "appVersion"
       },
-      "bundleIdentifier": "com.peacexv.phantomnotify"
+      "bundleIdentifier": "com.peacexv.phantomnotify",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +30,10 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "NOTIFICATIONS"
+        "NOTIFICATIONS",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "RECEIVE_BOOT_COMPLETED"
       ],
       "package": "com.peacexv.phantom_notify",
       "runtimeVersion": "1.0.0",
@@ -41,7 +49,8 @@
         "expo-notifications",
         {
           "icon": "./assets/phantom_reminder.png",
-          "color": "#ffffff"
+          "color": "#ffffff",
+          "sounds": ["./assets/phantom_reminder.png"]
         }
       ]
     ],

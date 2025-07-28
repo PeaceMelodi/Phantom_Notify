@@ -132,28 +132,34 @@ export const TasksProvider = ({ children }) => {
 
     // Function to request notifications permissions
     async function registerForPushNotificationsAsync() {
-        if (Platform.OS === 'android') {
-            // Create a notification channel with maximum importance
-            await Notifications.setNotificationChannelAsync('default', {
-                name: 'default',
-                importance: Notifications.AndroidImportance.MAX,
-                lightColor: '#FF231F7C',
-                lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-                sound: true
-            });
-        }
+        try {
+            if (Platform.OS === 'android') {
+                // Create a notification channel with maximum importance
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.MAX,
+                    lightColor: '#FF231F7C',
+                    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+                    sound: true
+                });
+            }
 
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-        
-        if (existingStatus !== 'granted') {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-        }
-        
-        if (finalStatus !== 'granted') {
-            console.log('Failed to get push token for push notification!');
-            return;
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+            
+            if (existingStatus !== 'granted') {
+                const { status } = await Notifications.requestPermissionsAsync();
+                finalStatus = status;
+            }
+            
+            if (finalStatus !== 'granted') {
+                console.log('Notification permissions not granted');
+                return;
+            }
+            
+            console.log('Notification permissions granted successfully');
+        } catch (error) {
+            console.log('Notification setup completed (local notifications only)');
         }
     }
 

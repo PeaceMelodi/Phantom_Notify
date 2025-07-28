@@ -111,8 +111,8 @@ const MainPage = () => {
                 </Text>
               </View>
             ) : (
-              filteredTasks.map(task => (
-                <View key={task.id} style={{
+              filteredTasks.map((task, index) => (
+                <View key={task.id || `task-${index}`} style={{
                   backgroundColor: colors.card,
                   padding:20,
                   paddingLeft:20,
